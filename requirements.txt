@@ -1,0 +1,37 @@
+# SEAL — RunPod / A100 requirements
+# Tested combo: CUDA 12.1, single A100 80GB, Python 3.10/3.11
+#
+# NOTE: `latex2sympy2` is installed separately in setup_runpod.sh with
+# `--no-deps` so it does NOT downgrade antlr4-python3-runtime (sympy 1.12's
+# parse_latex needs antlr 4.11.x, latex2sympy2 otherwise pins 4.7.2).
+
+# --- Core inference / modeling ---
+# vllm==0.6.6.post1 pulls a compatible torch (2.5.1). The custom steering
+# model (modeling_utils/modeling_qwen2.py) relies on transformers >= 4.46 internals.
+vllm==0.6.6.post1
+transformers==4.47.1
+accelerate>=1.0.0          # device_map="auto" in hidden_analysis.py / eval_MATH_steering.py
+peft>=0.13.0
+datasets>=3.0.0
+evaluate>=0.4.3            # eval scripts call evaluate.load("exact_match") at import
+
+# --- Math rule-based grading (get_math_results.py -> eval_math_rule.evaluation) ---
+sympy==1.12
+antlr4-python3-runtime==4.11.1   # MUST stay 4.11.x to match sympy 1.12 parse_latex
+word2number
+regex
+Pebble
+timeout-decorator
+
+# --- Utilities ---
+numpy
+pandas
+tqdm
+python-dateutil
+
+# --- Visualization (visualize_results.py) ---
+matplotlib
+
+# --- Optional speedup (NOT required; model defaults to sdpa attention) ---
+# Uncomment only if you want flash-attention-2 and are willing to wait for the build:
+# flash-attn --no-build-isolation
