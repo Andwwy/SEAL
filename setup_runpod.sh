@@ -29,10 +29,11 @@ pip install --upgrade pip setuptools wheel
 echo "[setup] Installing requirements.txt..."
 pip install -r requirements.txt
 
-# latex2sympy2 must be installed WITHOUT its deps so it can't downgrade
-# antlr4-python3-runtime (sympy 1.12's parse_latex needs antlr 4.11.x).
-echo "[setup] Installing latex2sympy2 (--no-deps)..."
-pip install --no-deps latex2sympy2==1.9.1
+# Install the repo's VENDORED latex2sympy2 (built against antlr 4.11.1, matching
+# sympy). The PyPI latex2sympy2 is broken on import and pins an incompatible
+# antlr, so we install the local copy with --no-deps.
+echo "[setup] Installing vendored latex2sympy2 (--no-deps)..."
+pip install --no-deps ./eval_math_rule/evaluation/latex2sympy
 
 # --- Hugging Face auth ---
 if [[ -n "${HF_TOKEN:-}" ]]; then

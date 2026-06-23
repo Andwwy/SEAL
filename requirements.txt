@@ -1,9 +1,10 @@
 # SEAL — RunPod / A100 requirements
 # Tested combo: CUDA 12.1, single A100 80GB, Python 3.10/3.11
 #
-# NOTE: `latex2sympy2` is installed separately in setup_runpod.sh with
-# `--no-deps` so it does NOT downgrade antlr4-python3-runtime (sympy 1.12's
-# parse_latex needs antlr 4.11.x, latex2sympy2 otherwise pins 4.7.2).
+# NOTE: latex2sympy2 is installed separately in setup_runpod.sh from the repo's
+# VENDORED copy (eval_math_rule/evaluation/latex2sympy), which is built against
+# antlr 4.11.1. The PyPI `latex2sympy2` is broken on import and pins an
+# incompatible antlr, so do NOT `pip install latex2sympy2`.
 
 # --- Core inference / modeling ---
 # vllm==0.6.6.post1 pulls a compatible torch (2.5.1). The custom steering
@@ -16,8 +17,8 @@ datasets>=3.0.0
 evaluate>=0.4.3            # eval scripts call evaluate.load("exact_match") at import
 
 # --- Math rule-based grading (get_math_results.py -> eval_math_rule.evaluation) ---
-sympy==1.12
-antlr4-python3-runtime==4.11.1   # MUST stay 4.11.x to match sympy 1.12 parse_latex
+sympy==1.13.1                    # required by torch 2.5.1 (pulled in via vllm)
+antlr4-python3-runtime==4.11.1   # MUST stay 4.11.x: matches sympy + vendored latex2sympy2
 word2number
 regex
 Pebble
