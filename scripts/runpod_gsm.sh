@@ -53,29 +53,37 @@ echo "=================================================================="
 if [[ -f "$VEC_FILE" ]]; then
     echo "[phase1] Steering vector already exists, skipping."
 else
-    echo "[phase1a] Generating MATH-train baseline traces (cap=$MATH_TRAIN_CAP)..."
-    python eval_MATH_vllm.py \
-        --model_name_or_path "$MODEL" \
-        --save_dir "$VEC_BASE" \
-        --max_tokens "$MAX_TOKENS" \
-        --max_examples "$MATH_TRAIN_CAP" \
-        --use_chat_format \
-        --dataset "MATH_train" \
-        --remove_bos
+    if [[ -f "${VEC_BASE}/math_eval.jsonl" ]]; then
+        echo "[phase1a] MATH-train baseline traces already exist, skipping."
+    else
+        echo "[phase1a] Generating MATH-train baseline traces (cap=$MATH_TRAIN_CAP)..."
+        python eval_MATH_vllm.py \
+            --model_name_or_path "$MODEL" \
+            --save_dir "$VEC_BASE" \
+            --max_tokens "$MAX_TOKENS" \
+            --max_examples "$MATH_TRAIN_CAP" \
+            --use_chat_format \
+            --dataset "MATH_train" \
+            --remove_bos
+    fi
 
-    echo "[phase1b] Extracting hidden states (incorrect)..."
+    # Only keep the steering layer's hidden states (shrinks hidden.pt ~num_layers x);
+    # the layer-$STEER_LAYER vector is identical to the all-layers version.
+    echo "[phase1b] Extracting hidden states (incorrect, layer $STEER_LAYER only)..."
     python hidden_analysis.py \
         --model_path "$MODEL" \
         --data_path data/MATH/train.jsonl \
         --data_dir "$VEC_BASE" \
-        --type incorrect --start 0 --sample "$VEC_SAMPLES"
+        --type incorrect --start 0 --sample "$VEC_SAMPLES" \
+        --keep_layers "$STEER_LAYER"
 
-    echo "[phase1b] Extracting hidden states (correct)..."
+    echo "[phase1b] Extracting hidden states (correct, layer $STEER_LAYER only)..."
     python hidden_analysis.py \
         --model_path "$MODEL" \
         --data_path data/MATH/train.jsonl \
         --data_dir "$VEC_BASE" \
-        --type correct --start 0 --sample "$VEC_SAMPLES"
+        --type correct --start 0 --sample "$VEC_SAMPLES" \
+        --keep_layers "$STEER_LAYER"
 
     echo "[phase1c] Building steering vector (layer $STEER_LAYER)..."
     python vector_generation.py \

@@ -72,7 +72,7 @@ def generate_index(text, tokenizer, split_id, think_only=True):
             switch_index.append(i)
     return step_index, check_index, switch_index
 
-def generate(model_path, data, save_dir):
+def generate(model_path, data, save_dir, keep_layers=None):
     think_only = "deepseek" in model_path.lower()
     model = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto")
     tokenizer = AutoTokenizer.from_pretrained(model_path)
@@ -88,6 +88,10 @@ def generate(model_path, data, save_dir):
     prompts = [d["prompt"]+d["response"] for d in data]
 
     layer_num = model.config.num_hidden_layers+1
+    # Only the steering layer is needed downstream; storing all layers makes
+    # hidden.pt ~num_layers x larger. keep_layers=None preserves original behavior.
+    if keep_layers is None:
+        keep_layers = list(range(layer_num))
     hidden_dict=[{} for _ in range(layer_num)]
 
     for k, p in tqdm(enumerate(prompts), total=len(prompts)):
@@ -102,7 +106,7 @@ def generate(model_path, data, save_dir):
         step_index = torch.LongTensor(step_index)
         check_index = torch.LongTensor(check_index)
         switch_index = torch.LongTensor(switch_index)
-        for i in range(layer_num):
+        for i in keep_layers:
             h = hidden_states[i][0]
             step_h = h[step_index]
             hidden_dict[i][k] = {"step":step_h, "check_index": check_index, "switch_index": switch_index}
@@ -124,6 +128,9 @@ if __name__ == "__main__":
     parser.add_argument("--type", type=str, default="correct", choices=["correct", "incorrect"])
     parser.add_argument("--start", type=int, default=-1)
     parser.add_argument("--sample", type=int, default=-1)
+    parser.add_argument("--keep_layers", type=int, nargs="+", default=None,
+                        help="Only extract/save these hidden-layer indices (default: all). "
+                             "Pass the steering layer to shrink hidden.pt ~num_layers x.")
     args = parser.parse_args()
     correct, incorrect = generate_math_data(data_dir=args.data_dir, data_path=args.data_path)
     if args.type == "correct":
@@ -139,4 +146,4 @@ if __name__ == "__main__":
         else:
             save_dir = f"{save_dir}_{args.start}_-1"
     print(save_dir)
-    generate(args.model_path, data, save_dir)
+    generate(args.model_path, data, save_dir, keep_layers=args.keep_layers)
