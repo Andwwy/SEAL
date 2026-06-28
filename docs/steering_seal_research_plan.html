@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>General vs. Task-Specific Reasoning-Calibration Vectors · Research Plan (SEAL recipe)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F1E7; --panel:#FBF8F1; --panel-2:#EFE7D8;
+    --ink:#1B1714; --ink-soft:#5C5347; --line:#DCD2BF;
+    --blue:#2546D4; --blue-soft:#8195EC; --blue-wash:#E7EAFB;
+    --coral:#D9461C; --coral-soft:#EF9272; --coral-wash:#FAE6DC;
+    --green:#2C7A4E; --green-soft:#7FBE99; --green-wash:#E7F0EA;
+    --grid:rgba(27,23,20,.045);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:"IBM Plex Sans",sans-serif; font-size:17px; line-height:1.62;
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:28px 28px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1060px; margin:0 auto; padding:0 28px}
+  .mono{font-family:"IBM Plex Mono",monospace}
+  .kicker{font-family:"IBM Plex Mono",monospace; font-size:12.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--blue)}
+  h1,h2,h3{font-family:"Fraunces",serif; font-weight:600; line-height:1.05; letter-spacing:-.01em}
+  p{max-width:64ch}
+  a{color:var(--blue)}
+
+  header{padding:88px 0 56px; position:relative; overflow:hidden}
+  header .kicker{margin-bottom:22px}
+  h1{font-size:clamp(38px,6.4vw,72px); font-weight:700; max-width:17ch}
+  h1 em{font-style:italic; color:inherit}
+  .lede{margin-top:26px; font-size:clamp(18px,2.2vw,21px); color:var(--ink-soft); max-width:60ch}
+  .tagrow{margin-top:34px; display:flex; flex-wrap:wrap; gap:10px}
+  .tag{font-family:"IBM Plex Mono",monospace; font-size:12px; padding:7px 13px; border:1px solid var(--line); border-radius:100px; background:var(--panel); letter-spacing:.04em}
+  .tag b{color:var(--ink)}
+  .swap{margin-top:26px; background:var(--blue-wash); border:1px solid var(--blue-soft); border-radius:12px; padding:16px 20px; max-width:70ch; font-size:15px}
+  .swap b{color:var(--blue)}
+
+  section{padding:62px 0; border-top:1px solid var(--line)}
+  .sechead{display:flex; align-items:baseline; gap:18px; margin-bottom:30px}
+  .secnum{font-family:"IBM Plex Mono",monospace; font-size:14px; color:var(--blue); padding-top:8px}
+  h2{font-size:clamp(28px,4.4vw,44px)}
+  .sub{color:var(--ink-soft); margin-top:14px; max-width:62ch}
+
+  figure{margin:34px 0 8px; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:26px 26px 18px; box-shadow:0 1px 0 rgba(27,23,20,.03),0 18px 40px -34px rgba(27,23,20,.45)}
+  figure svg{display:block; width:100%; height:auto}
+  figcaption{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink-soft); margin-top:16px; line-height:1.55; border-top:1px dashed var(--line); padding-top:12px}
+  figcaption b{color:var(--ink)}
+
+  .twocol{display:grid; grid-template-columns:1fr 1fr; gap:22px}
+  @media(max-width:740px){.twocol{grid-template-columns:1fr}}
+
+  .refs{display:grid; grid-template-columns:1fr 1fr; gap:18px; margin-top:8px}
+  @media(max-width:740px){.refs{grid-template-columns:1fr}}
+  .ref{background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:22px; position:relative; transition:transform .25s ease, box-shadow .25s ease}
+  .ref:hover{transform:translateY(-3px); box-shadow:0 22px 40px -30px rgba(27,23,20,.5)}
+  .ref .role{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; padding:4px 9px; border-radius:100px; display:inline-block; margin-bottom:14px}
+  .role.method{background:var(--blue-wash); color:var(--blue)}
+  .role.found{background:var(--panel-2); color:var(--ink-soft)}
+  .role.exemplar{background:var(--green-wash); color:var(--green)}
+  .role.rival{background:var(--panel-2); color:var(--ink-soft)}
+  .ref h3{font-size:21px; line-height:1.15}
+  .ref .meta{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-soft); margin:6px 0 12px}
+  .ref p{font-size:15px; color:var(--ink-soft)}
+  .ref .why{margin-top:12px; font-size:14.5px; color:var(--ink)}
+  .ref .why b{color:var(--ink)}
+
+  ul.clean{list-style:none; margin:18px 0; display:grid; gap:12px}
+  ul.clean li{padding-left:34px; position:relative; max-width:64ch}
+  ul.clean li::before{content:attr(data-n); position:absolute; left:0; top:1px; font-family:"IBM Plex Mono",monospace; font-size:12px; color:#fff; background:var(--blue); width:22px; height:22px; border-radius:50%; display:grid; place-items:center}
+  strong{font-weight:600}
+  .callout{background:var(--coral-wash); border-left:3px solid var(--coral); border-radius:0 10px 10px 0; padding:16px 20px; margin:22px 0; max-width:66ch}
+  .callout b{color:var(--coral)}
+  .note{background:var(--green-wash); border-left:3px solid var(--green); border-radius:0 10px 10px 0; padding:16px 20px; margin:22px 0; max-width:66ch}
+  .note b{color:var(--green)}
+
+  .rqbox{background:var(--panel); border:1px solid var(--line); border-left:4px solid var(--ink); border-radius:0 14px 14px 0; padding:24px 28px; margin:6px 0 30px}
+  .rqbox .lab{font-family:"IBM Plex Mono",monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase; color:var(--blue); display:block; margin-bottom:12px}
+  .rqbox .q{font-family:"Fraunces",serif; font-weight:500; font-size:clamp(20px,2.6vw,26px); line-height:1.28; color:var(--ink); max-width:62ch}
+  .hyps{display:grid; gap:14px; margin:6px 0 30px}
+  .hrow{display:flex; gap:15px; align-items:flex-start; max-width:66ch}
+  .hpill{flex:none; font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:500; color:#fff; background:var(--blue); padding:4px 9px; border-radius:7px; margin-top:3px}
+  .hrow p{margin:0; color:var(--ink)}
+
+  table.plan{width:100%; border-collapse:collapse; margin:22px 0 8px; font-size:14.5px; background:var(--panel); border:1px solid var(--line); border-radius:12px; overflow:hidden}
+  table.plan th,table.plan td{text-align:left; padding:12px 14px; border-bottom:1px solid var(--line); vertical-align:top}
+  table.plan thead th{font-family:"IBM Plex Mono",monospace; font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--blue); background:var(--panel-2); font-weight:500}
+  table.plan tr:last-child td{border-bottom:none}
+  table.plan td b{color:var(--ink)}
+  table.plan code,.ic{font-family:"IBM Plex Mono",monospace; font-size:12.5px; background:var(--panel-2); padding:1px 6px; border-radius:5px}
+  table.plan tr.ctrl td{background:rgba(217,70,28,.05)}
+  .eqbox{font-family:"IBM Plex Mono",monospace; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:18px 22px; margin:18px 0; font-size:16px; text-align:center; color:var(--ink)}
+  .eqbox .b{color:var(--blue)} .eqbox .c{color:var(--coral)} .eqbox .g{color:var(--green)}
+
+  footer{border-top:1px solid var(--line); padding:40px 0 70px; color:var(--ink-soft); font-family:"IBM Plex Mono",monospace; font-size:12.5px}
+  footer b{color:var(--ink)}
+
+  .reveal{opacity:0; transform:translateY(18px); transition:opacity .7s ease, transform .7s ease}
+  .reveal.in{opacity:1; transform:none}
+  .d1{transition-delay:.06s}.d2{transition-delay:.12s}.d3{transition-delay:.18s}.d4{transition-delay:.24s}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="kicker reveal in">Algoverse · Research Plan v2 · Reasoning-Calibration Steering</div>
+    <h1 class="reveal in d1">General versus task-specific <em>reasoning-calibration</em> vectors</h1>
+    <p class="lede reveal in d2">Using SEAL's recipe — contrast execution thoughts against over-thinking — does one general calibration vector recover the per-domain accuracy <em>and</em> token-efficiency gains of separate math, code, and logic vectors? And is it a linear combination of them, or a distinct direction?</p>
+    <div class="tagrow reveal in d3">
+      <span class="tag">no fine-tuning</span>
+      <span class="tag"><b>DeepSeek-R1-Distill</b> reasoner</span>
+      <span class="tag">extract = evaluate</span>
+      <span class="tag"><b>dual metric: accuracy + tokens</b></span>
+    </div>
+    <div class="swap reveal in d4"><b>What changed from v1.</b> We replace the CAA positive/negative recipe with <b>SEAL</b>'s contrast — <span class="mono">S = H̄<sub>E</sub> − H̄<sub>RT</sub></span> (execution vs. reflection ∪ transition), read at the <span class="mono">\n\n</span> thought boundaries at one layer and applied at every boundary during decoding. The research questions are unchanged; only the vector recipe — and the addition of a token-efficiency metric — is new.</div>
+  </div>
+</header>
+
+<!-- 01 QUESTIONS -->
+<section>
+  <div class="wrap">
+    <div class="sechead reveal"><div class="secnum">01</div><div><h2>Research questions</h2><p class="sub">The same three questions as v1 — recovery, geometry, specificity — now asked of SEAL-style calibration vectors, and now over two outcomes (accuracy and tokens).</p></div></div>
+
+    <div class="rqbox reveal">
+      <span class="lab">Primary research question</span>
+      <p class="q">When a single general reasoning-calibration vector is extracted (SEAL recipe) from a mixture of reasoning tasks, how much of each task-specific vector's accuracy and token-efficiency gain does it recover — and is the general vector a linear combination of the task-specific vectors, or a distinct direction?</p>
+    </div>
+
+    <div class="hyps reveal">
+      <div class="hrow"><span class="hpill">Q1</span><p><b>Recovery.</b> How much of each task-specific vector's home-benchmark gain — in <b>both accuracy and token reduction</b> — does the pooled general vector recover, and at what cost?</p></div>
+      <div class="hrow"><span class="hpill">Q2</span><p><b>Geometry.</b> Is the general vector well explained by the span of the three task-specific vectors, or does a non-trivial residual remain — a shared calibration structure beyond a linear combination?</p></div>
+      <div class="hrow"><span class="hpill">Q3</span><p><b>Specificity.</b> Do task-specific vectors help their home benchmark while degrading others, and does negating a vector (<span class="mono">−S</span>) re-introduce over-thinking, as it should if the direction is meaningful?</p></div>
+    </div>
+
+    <p class="reveal" style="margin-bottom:6px">A <strong>steering vector</strong> is a direction added to a model's internal activity at inference time to shift its behaviour, with no retraining. In SEAL's case the behaviour is "stay on task": the vector points from the average over-thinking state toward the average execution state.</p>
+
+    <figure class="reveal">
+      <svg viewBox="0 0 920 300" role="img" aria-label="A calibration vector pushes the model from the over-thinking region toward the execution region">
+        <defs>
+          <marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M2 1 L8 5 L2 9" fill="none" stroke="context-stroke" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></marker>
+        </defs>
+        <text x="40" y="44" font-size="13" font-family="IBM Plex Mono" fill="#5C5347">model's internal state at a thought boundary (\n\n)</text>
+        <ellipse cx="715" cy="92" rx="150" ry="62" fill="#E7F0EA" stroke="#7FBE99" stroke-dasharray="5 5"/>
+        <text x="715" y="62" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" fill="#2C7A4E">execution region (on-task)</text>
+        <ellipse cx="180" cy="206" rx="120" ry="52" fill="#FAE6DC" stroke="#EF9272" stroke-dasharray="5 5"/>
+        <text x="150" y="250" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" fill="#D9461C">over-thinking region</text>
+        <circle cx="180" cy="200" r="7" fill="#1B1714"/>
+        <text x="180" y="186" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" fill="#1B1714">H (default)</text>
+        <line x1="192" y1="196" x2="640" y2="106" stroke="#2546D4" stroke-width="3" marker-end="url(#ah)"/>
+        <text x="404" y="132" text-anchor="middle" font-family="IBM Plex Mono" font-size="14" fill="#2546D4" transform="rotate(-11 404 132)">+ α · S  (calibration vector)</text>
+        <circle cx="660" cy="102" r="7" fill="#2546D4"/>
+        <text x="660" y="132" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" fill="#2546D4">H′ = H + αS</text>
+        <text x="40" y="284" font-family="IBM Plex Mono" font-size="12.5" fill="#5C5347">S = mean(execution states) − mean(reflection ∪ transition states)</text>
+      </svg>
+      <figcaption><b>What the calibration vector does.</b> Built once from contrasting thought types, then added at every <span class="mono">\n\n</span> during decoding. It nudges the model out of redundant rechecking toward execution — fewer tokens, equal-or-better accuracy.</figcaption>
+    </figure>
+
+    <p style="margin-top:26px">We build a <strong>specific</strong> calibration vector per skill — math, code, logic — and one <strong>general</strong> vector from all three pooled. The primary question then splits into two measurable halves.</p>
+    <ul class="clean reveal">
+      <li data-n="1"><strong>The trade-off (Q1).</strong> If we build one general vector from a mix of all three skills, how much of each specific vector's accuracy <em>and</em> token-saving does it keep, and can one vector substitute for three?</li>
+      <li data-n="2"><strong>The geometry (Q2).</strong> Is that general vector simply the three specific vectors <strong>added together</strong>, or a distinct direction? Given SEAL's reported math→code transfer, we expect a small residual — but quantifying it is the point.</li>
+    </ul>
+
+    <figure class="reveal">
+      <svg viewBox="0 0 920 380" role="img" aria-label="Is the general vector inside the span of the three specific vectors, or does it stick out">
+        <polygon points="150,250 470,300 770,235 450,185" fill="#E7EAFB" stroke="#8195EC" stroke-width="1.5"/>
+        <text x="250" y="288" font-family="IBM Plex Mono" font-size="13" fill="#2546D4">plane = everything you can build by mixing</text>
+        <text x="250" y="306" font-family="IBM Plex Mono" font-size="13" fill="#2546D4">S_math · S_code · S_logic</text>
+        <circle cx="430" cy="250" r="6" fill="#1B1714"/>
+        <line x1="430" y1="250" x2="250" y2="232" stroke="#2546D4" stroke-width="2.4" marker-end="url(#ah)"/>
+        <line x1="430" y1="250" x2="640" y2="244" stroke="#2546D4" stroke-width="2.4" marker-end="url(#ah)"/>
+        <text x="225" y="224" font-family="IBM Plex Mono" font-size="12" fill="#2546D4">S_math</text>
+        <text x="648" y="240" font-family="IBM Plex Mono" font-size="12" fill="#2546D4">S_logic</text>
+        <line x1="430" y1="250" x2="520" y2="92" stroke="#D9461C" stroke-width="3.2" marker-end="url(#ah)"/>
+        <circle cx="520" cy="92" r="6" fill="#D9461C"/>
+        <text x="534" y="86" font-family="IBM Plex Mono" font-size="13" fill="#D9461C">S_general</text>
+        <line x1="430" y1="250" x2="505" y2="220" stroke="#D9461C" stroke-width="1.6" stroke-dasharray="4 4"/>
+        <circle cx="505" cy="220" r="4" fill="#EF9272"/>
+        <line x1="505" y1="220" x2="520" y2="92" stroke="#D9461C" stroke-width="1.6" stroke-dasharray="4 4"/>
+        <text x="540" y="170" font-family="IBM Plex Mono" font-size="12" fill="#D9461C">residual</text>
+        <text x="430" y="240" font-family="IBM Plex Mono" font-size="12" fill="#EF9272" text-anchor="end">projection</text>
+        <text x="150" y="40" font-family="Fraunces" font-size="17" font-weight="600" fill="#2546D4">If it lies flat in the plane →</text>
+        <text x="150" y="62" font-family="IBM Plex Sans" font-size="14" fill="#5C5347">the general vector is "just" a combination (the likely outcome, per SEAL transfer).</text>
+        <text x="150" y="112" font-family="Fraunces" font-size="17" font-weight="600" fill="#D9461C">If it sticks out →</text>
+        <text x="150" y="134" font-family="IBM Plex Sans" font-size="14" fill="#5C5347">calibration carries structure the three skills do not: the more surprising find.</text>
+      </svg>
+      <figcaption><b>The geometry test.</b> Split <span class="mono">S_general</span> into the part inside the plane (a mix of specifics) plus a leftover <b>residual</b>. Small residual → combination; large → genuinely new direction.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 02 BACKGROUND -->
+<section>
+  <div class="wrap">
+    <div class="sechead reveal"><div class="secnum">02</div><div><h2>Background and key references</h2><p class="sub">The method we now adopt, the conceptual foundation, the extraction principle, and the work we differentiate from.</p></div></div>
+    <div class="refs">
+      <div class="ref reveal d1">
+        <span class="role method">the method</span>
+        <h3>SEAL: Steerable Reasoning Calibration</h3>
+        <div class="meta">2025 · arXiv 2504.07986 · COLM</div>
+        <p>Builds a training-free steering vector <span class="mono">S = H̄<sub>E</sub> − H̄<sub>RT</sub></span> by contrasting execution thoughts with reflection/transition thoughts at <span class="mono">\n\n</span> boundaries, then adds it at decode time.</p>
+        <div class="why">Our new recipe for <b>every</b> vector, so they're all comparable — and the source of our dual metric.</div>
+      </div>
+      <div class="ref reveal d2">
+        <span class="role found">the foundation</span>
+        <h3>Editing Models with Task Arithmetic</h3>
+        <div class="meta">Ilharco et al., 2022 · arXiv 2212.04089</div>
+        <p>Showed that in a model's <em>weights</em>, adding two task vectors gives a model good at both, and negating one removes that skill.</p>
+        <div class="why">We ask the same composition question one level down, in <b>activation space</b>.</div>
+      </div>
+      <div class="ref reveal d3">
+        <span class="role exemplar">extract it right</span>
+        <h3>ATLAS: Adaptive Test-Time Latent Steering</h3>
+        <div class="meta">2026 · arXiv 2601.03093</div>
+        <p>Extracts reasoning steering vectors from actual benchmark reasoning traces, not role descriptions, and obtains real accuracy gains.</p>
+        <div class="why">The template for <b>matching extraction to evaluation</b> — which SEAL also follows.</div>
+      </div>
+      <div class="ref reveal d4">
+        <span class="role rival">what we test</span>
+        <h3>Steer2Adapt</h3>
+        <div class="meta">2026 · arXiv 2602.07276</div>
+        <p>Composes steering vectors and treats a general capability as a combination of domain directions — but <em>assumes</em> the combination works.</p>
+        <div class="why">We don't assume it. Testing <b>whether</b> the general calibration vector is a combination is our hook.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 03 METHODOLOGY -->
+<section>
+  <div class="wrap">
+    <div class="sechead reveal"><div class="secnum">03</div><div><h2>Methodology</h2><p class="sub">How each vector is built with SEAL's contrast — identical recipe everywhere, only the data domain changes.</p></div></div>
+
+    <figure class="reveal">
+      <svg viewBox="0 0 920 360" role="img" aria-label="SEAL extraction: segment a trace, label thoughts, read at boundaries, average by type, subtract">
+        <text x="40" y="34" font-family="Fraunces" font-size="18" font-weight="600" fill="#1B1714">The SEAL extraction recipe</text>
+        <!-- step 1 trace -->
+        <text x="40" y="64" font-family="IBM Plex Mono" font-size="12" fill="#5C5347">1 · run model on domain problems → split CoT at every \n\n → label each thought</text>
+        <rect x="40" y="78" width="150" height="44" rx="9" fill="#E7F0EA" stroke="#2C7A4E"/><text x="115" y="104" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#2C7A4E">execution</text>
+        <rect x="206" y="78" width="150" height="44" rx="9" fill="#FAE6DC" stroke="#EF9272"/><text x="281" y="104" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#D9461C">reflection</text>
+        <rect x="372" y="78" width="150" height="44" rx="9" fill="#EFE7D8" stroke="#8195EC"/><text x="447" y="104" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#2546D4">transition</text>
+        <rect x="538" y="78" width="150" height="44" rx="9" fill="#E7F0EA" stroke="#2C7A4E"/><text x="613" y="104" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#2C7A4E">execution</text>
+        <!-- step 2 read -->
+        <text x="40" y="160" font-family="IBM Plex Mono" font-size="12" fill="#5C5347">2 · read hidden state at each \n\n (one layer)</text>
+        <g font-family="IBM Plex Mono" font-size="11">
+          <line x1="115" y1="122" x2="115" y2="150" stroke="#5C5347" stroke-width="1.4" marker-end="url(#ah)"/>
+          <line x1="281" y1="122" x2="281" y2="150" stroke="#5C5347" stroke-width="1.4" marker-end="url(#ah)"/>
+          <line x1="447" y1="122" x2="447" y2="150" stroke="#5C5347" stroke-width="1.4" marker-end="url(#ah)"/>
+          <line x1="613" y1="122" x2="613" y2="150" stroke="#5C5347" stroke-width="1.4" marker-end="url(#ah)"/>
+        </g>
+        <!-- step 3 buckets -->
+        <rect x="40" y="196" width="300" height="92" rx="11" fill="#FBF8F1" stroke="#2C7A4E"/>
+        <text x="190" y="220" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" fill="#2C7A4E">EXECUTION bucket → mean = H̄_E</text>
+        <text x="190" y="262" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#5C5347">avg of all execution \n\n states</text>
+        <rect x="360" y="196" width="328" height="92" rx="11" fill="#FBF8F1" stroke="#EF9272"/>
+        <text x="524" y="220" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" fill="#D9461C">REFLECTION ∪ TRANSITION → mean = H̄_RT</text>
+        <text x="524" y="262" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#5C5347">avg of all over-thinking \n\n states</text>
+        <!-- step 4 subtract -->
+        <line x1="690" y1="242" x2="740" y2="242" stroke="#1B1714" stroke-width="1.6" marker-end="url(#ah)"/>
+        <rect x="744" y="206" width="150" height="72" rx="11" fill="#E7EAFB" stroke="#2546D4" stroke-width="2"/>
+        <text x="819" y="238" text-anchor="middle" font-family="IBM Plex Mono" font-size="14" fill="#2546D4">S =</text>
+        <text x="819" y="258" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" fill="#2546D4">H̄_E − H̄_RT</text>
+        <text x="40" y="324" font-family="IBM Plex Mono" font-size="11.5" fill="#5C5347">3 · average by type   ·   4 · subtract → one calibration vector S for this domain</text>
+      </svg>
+      <figcaption><b>One recipe, run per domain.</b> The contrast (execution vs. reflection ∪ transition), the read position (<span class="mono">\n\n</span>), and the layer are held fixed. Only the <b>data domain</b> changes — which is what keeps <span class="mono">S_math</span>, <span class="mono">S_code</span>, <span class="mono">S_logic</span> and <span class="mono">S_general</span> directly comparable.</figcaption>
+    </figure>
+
+    <p style="margin-top:26px">With the recipe fixed, we build <strong>five vectors</strong> on a DeepSeek-R1-Distill reasoner (layer 20, α≈1.0 as SEAL defaults; both confirmed by ablation):</p>
+    <figure class="reveal">
+      <svg viewBox="0 0 920 250" role="img" aria-label="Three specific vectors, one general vector, and a combination baseline">
+        <g font-family="IBM Plex Mono" font-size="13">
+          <rect x="30" y="60" width="150" height="56" rx="10" fill="#E7EAFB" stroke="#2546D4"/><text x="105" y="84" text-anchor="middle" fill="#2546D4" font-size="14">S_math</text><text x="105" y="102" text-anchor="middle" fill="#5C5347" font-size="11">from GSM8K traces</text>
+          <rect x="30" y="124" width="150" height="56" rx="10" fill="#E7EAFB" stroke="#2546D4"/><text x="105" y="148" text-anchor="middle" fill="#2546D4" font-size="14">S_code</text><text x="105" y="166" text-anchor="middle" fill="#5C5347" font-size="11">from MBPP traces</text>
+          <rect x="30" y="188" width="150" height="44" rx="10" fill="#E7EAFB" stroke="#2546D4"/><text x="105" y="214" text-anchor="middle" fill="#2546D4" font-size="13">S_logic / LogiQA</text>
+        </g>
+        <text x="105" y="44" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" letter-spacing=".1em" fill="#2546D4">SPECIFIC (×3)</text>
+        <line x1="190" y1="88" x2="360" y2="140" stroke="#5C5347" stroke-width="1.6" marker-end="url(#ah)"/>
+        <line x1="190" y1="152" x2="360" y2="150" stroke="#5C5347" stroke-width="1.6" marker-end="url(#ah)"/>
+        <line x1="190" y1="210" x2="360" y2="160" stroke="#5C5347" stroke-width="1.6" marker-end="url(#ah)"/>
+        <text x="270" y="100" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#5C5347">pool the traces</text>
+        <rect x="365" y="116" width="170" height="72" rx="11" fill="#FAE6DC" stroke="#D9461C" stroke-width="2"/><text x="450" y="148" text-anchor="middle" font-family="IBM Plex Mono" font-size="15" fill="#D9461C">S_general</text><text x="450" y="168" text-anchor="middle" font-family="IBM Plex Mono" font-size="11" fill="#5C5347">all 3 mixed</text>
+        <text x="450" y="44" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" letter-spacing=".1em" fill="#D9461C">GENERAL (×1)</text>
+        <line x1="543" y1="152" x2="612" y2="152" stroke="#1B1714" stroke-width="1.6" stroke-dasharray="3 4"/>
+        <text x="577" y="146" text-anchor="middle" font-family="IBM Plex Mono" font-size="13" fill="#1B1714">vs</text>
+        <rect x="620" y="116" width="290" height="72" rx="11" fill="#FBF8F1" stroke="#DCD2BF"/>
+        <text x="765" y="142" text-anchor="middle" font-family="IBM Plex Mono" font-size="12.5" fill="#1B1714">S_combo =</text>
+        <text x="765" y="160" text-anchor="middle" font-family="IBM Plex Mono" font-size="11.5" fill="#1B1714">a·S_math + b·S_code + c·S_logic</text>
+        <text x="765" y="178" text-anchor="middle" font-family="IBM Plex Mono" font-size="10" fill="#5C5347">the "just add them up" baseline</text>
+        <text x="765" y="44" text-anchor="middle" font-family="IBM Plex Mono" font-size="12" letter-spacing=".1em" fill="#5C5347">BASELINE</text>
+      </svg>
+      <figcaption><b>The five vectors.</b> Three specific, one general (pooled), and a combination baseline. Comparing <span class="mono">S_general</span> against <span class="mono">S_combo</span> answers the geometry question.</figcaption>
+    </figure>
+
+    <div class="callout reveal"><b>Why a reasoning model is required.</b> SEAL's contrast only exists if the model produces reflection/transition thoughts. A vanilla 8B does not — so we use a distilled reasoner (<b>DeepSeek-R1-Distill-Qwen-7B</b>; the Llama-8B distill is the drop-in if we want the "8B" framing). All thoughts are segmented at <span class="mono">\n\n</span> and labelled by SEAL's keyword list (their Appendix B).</div>
+
+    <p class="reveal" style="margin-top:6px"><strong>Three controls are built in.</strong> Flipping a vector's sign (<span class="mono">−S</span>) should worsen the matching benchmark (more over-thinking); a random direction should do little; and a <span class="mono">shuffled-label</span> vector (execution/over-thinking labels assigned at random before averaging) should give ≈0 — proving it is the contrast, not any activation difference, carrying the signal.</p>
+  </div>
+</section>
+
+<!-- 04 EXPERIMENTAL DESIGN -->
+<section>
+  <div class="wrap">
+    <div class="sechead reveal"><div class="secnum">04</div><div><h2>Experimental design</h2><p class="sub">A dual-metric effect matrix on held-out test data, plus three analyses that answer Q1–Q3.</p></div></div>
+
+    <div class="eqbox reveal">
+      Recovery% (per domain d) &nbsp;=&nbsp; <span class="b">gain( S_general , d )</span> &nbsp;÷&nbsp; <span class="c">gain( S_d , d )</span> &nbsp;&nbsp;·&nbsp;&nbsp; computed for <span class="g">accuracy</span> and for <span class="g">token reduction</span>
+    </div>
+
+    <div class="twocol">
+      <div class="reveal d1">
+        <h3 style="font-size:21px; margin-bottom:10px">What we measure</h3>
+        <ul class="clean">
+          <li data-n="1"><strong>Recovery %.</strong> Of a specific vector's home gain — in accuracy and in tokens — how much does <span class="mono">S_general</span> keep?</li>
+          <li data-n="2"><strong>In-span residual.</strong> <span class="mono">‖r‖ / ‖S_general‖</span> after least-squares projection onto {S_math, S_code, S_logic}, plus the full cosine matrix.</li>
+          <li data-n="3"><strong>Trade-off.</strong> Each vector's home gain vs. its average effect on the other two skills.</li>
+        </ul>
+      </div>
+      <div class="reveal d2">
+        <h3 style="font-size:21px; margin-bottom:10px">How we keep it honest</h3>
+        <ul class="clean">
+          <li data-n="4"><strong>Anti, random &amp; shuffled-label</strong> controls (from §03).</li>
+          <li data-n="5"><strong>Matched tuning.</strong> Pick α and the layer on a <em>validation</em> split, report on a held-out <em>test</em> split — extraction set ⊂ train, no overlap, so no vector wins by lucky tuning.</li>
+          <li data-n="6"><strong>Greedy decoding</strong> for reproducibility (sampling in appendix), exactly as SEAL.</li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="reveal" style="margin-top:20px">The headline artifact is the <strong>effect matrix</strong>: 7 vectors × 3 benchmarks, every cell measured twice — change in accuracy and change in token count vs. the unsteered baseline.</p>
+  </div>
+</section>
+
+<!-- 05 ABLATIONS -->
+<section>
+  <div class="wrap">
+    <div class="sechead reveal"><div class="secnum">05</div><div><h2>Ablation design</h2><p class="sub">SEAL's three native axes (contrast, layer, strength), our controls, and two granularity-specific knobs — each run one-at-a-time on the validation split.</p></div></div>
+
+    <table class="plan reveal">
+      <thead><tr><th>Axis</th><th>Default</th><th>Sweep</th><th>Question it answers</th></tr></thead>
+      <tbody>
+        <tr><td><b>Contrast composition</b></td><td><code>exec − (refl∪trans)</code></td><td>reflection-only · transition-only · both · execution (sanity)</td><td>Which thought-type drives the gain — and does it differ by domain?</td></tr>
+        <tr><td><b>Layer</b></td><td><code>20</code></td><td>{8, 12, 16, 20, 24, 28}</td><td>Do the domain vectors and the general vector share a best layer?</td></tr>
+        <tr><td><b>Strength α</b></td><td><code>1.0</code></td><td>{0, 0.5, 1, 1.5, 2}</td><td>Does <code>S_general</code> need a different push than the specifics?</td></tr>
+        <tr><td><b>Extraction position</b></td><td><code>\n\n</code> boundary</td><td>last content token · mean-pool over thought</td><td>Is SEAL's <code>\n\n</code> choice load-bearing for our conclusions?</td></tr>
+        <tr><td><b>General construction</b></td><td>pooled data</td><td>average specifics (<code>S_combo</code>) · learned weights · data-mixture ratio</td><td>Tests Q2 from the build side: does pooled differ from combined?</td></tr>
+        <tr class="ctrl"><td><b>Controls</b></td><td>—</td><td>anti <code>−S</code> · random direction · shuffled-label</td><td>Validates the contrast carries real, directional signal.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="note reveal"><b>Cleanest single control:</b> the <b>shuffled-label</b> vector. If randomizing the execution/over-thinking labels before averaging still produced a useful direction, the gains wouldn't be coming from the contrast at all. It should collapse to ≈0.</div>
+  </div>
+</section>
+
+<!-- 06 ANTICIPATED RESULTS -->
+<section>
+  <div class="wrap">
+    <div class="sechead reveal"><div class="secnum">06</div><div><h2>Anticipated results</h2><p class="sub">Illustrative shapes only — the figures the experiments are designed to produce, not measured data.</p></div></div>
+
+    <figure class="reveal">
+      <div id="heatAcc"></div>
+      <figcaption><b>Effect matrix · accuracy.</b> Each cell is Δ accuracy from steering with that vector on that benchmark. Specific vectors light up their own column; <span class="mono">S_general</span> and <span class="mono">S_combo</span> spread moderate gains across all three; anti-vectors go red (control passes); random stays blank.</figcaption>
+    </figure>
+
+    <figure class="reveal">
+      <div id="heatTok"></div>
+      <figcaption><b>Effect matrix · tokens.</b> The efficiency half SEAL adds. Green = fewer tokens (more efficient). Specific vectors cut tokens hardest on their home benchmark; the general vector cuts moderately everywhere; anti-vectors <em>increase</em> tokens (more over-thinking).</figcaption>
+    </figure>
+
+    <div class="twocol">
+      <figure class="reveal d1">
+        <div id="bars"></div>
+        <figcaption><b>Recovery %.</b> How much of each specific vector's home gain the single general vector keeps — shown for accuracy and tokens. The story we're testing: one vector recovers most of three.</figcaption>
+      </figure>
+      <figure class="reveal d2">
+        <div id="scatter"></div>
+        <figcaption><b>The trade-off.</b> Specific vectors: big home gain but hurt other skills (lower-right). General &amp; combo: smaller home gain, positive everywhere (upper-middle). Where they land is the contribution.</figcaption>
+      </figure>
+    </div>
+
+    <p class="reveal" style="margin-top:22px"><strong>Every outcome is informative.</strong> Given SEAL's reported transfer, the likely result is that <span class="mono">S_general</span> ≈ <span class="mono">S_combo</span> with a small residual — establishing that the reasoning-<em>calibration</em> direction is largely <b>domain-general</b>, in contrast to skill/content directions which tend to be domain-specific. If instead <span class="mono">S_general</span> exceeds the combination or falls outside the plane, calibration carries shared structure the parts do not capture. Both settle the open question.</p>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div><b>Reasoning-Calibration Steering · v2</b>: general versus task-specific calibration directions, built with the SEAL recipe.</div>
+    <div style="margin-top:6px">DeepSeek-R1-Distill reasoner · GSM8K · MBPP · LogiQA · dual metric (accuracy + tokens) · plots above are illustrative expected shapes.</div>
+    <div style="margin-top:6px">Prepared for team &amp; PI review.</div>
+  </div>
+</footer>
+
+<script>
+const NS="http://www.w3.org/2000/svg";
+function el(t,a){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;}
+function svg(w,h){const s=el("svg",{viewBox:`0 0 ${w} ${h}`,width:"100%"});s.style.height="auto";return s;}
+function txt(s,x,y,o={}){const t=el("text",{x,y,"font-family":o.f||"IBM Plex Mono","font-size":o.s||12,fill:o.c||"#5C5347","text-anchor":o.a||"start"});if(o.w)t.setAttribute("font-weight",o.w);t.textContent=s;return t;}
+
+// ---- generic heatmap ----
+function heatmap(id, rows, cols, opt){
+  const padL=160, padT=58, cw=200, ch=40, gap=4, W=900;
+  const H=padT+rows.length*(ch+gap)+38;
+  const s=svg(W,H);
+  cols.forEach((c,j)=>s.appendChild(txt(c,padL+j*(cw+gap)+cw/2,padT-16,{a:"middle",c:"#1B1714",s:13,w:500})));
+  function color(v){
+    if(Math.abs(v)<opt.dead) return "#F1ECE0";
+    const good = opt.invert ? (v<0) : (v>0);
+    const a=Math.min(1,Math.abs(v)/opt.scale);
+    return good ? `rgba(44,122,78,${0.18+a*0.72})` : `rgba(217,70,28,${0.18+a*0.72})`;
+  }
+  rows.forEach((r,i)=>{
+    const y=padT+i*(ch+gap);
+    s.appendChild(txt(r[0],padL-14,y+ch/2+4,{a:"end",c:"#1B1714",s:13}));
+    r[1].forEach((v,j)=>{
+      const x=padL+j*(cw+gap);
+      s.appendChild(el("rect",{x,y,width:cw,height:ch,rx:6,fill:color(v),stroke:"#DCD2BF","stroke-width":1}));
+      const dark=Math.abs(v)>opt.scale*0.5;
+      s.appendChild(txt((v>0?"+":"")+v.toFixed(opt.dp)+ (opt.unit||""),x+cw/2,y+ch/2+4,{a:"middle",c:dark?"#fff":"#1B1714",s:13,w:500}));
+    });
+  });
+  const gb=padT+rows.length*(ch+gap);
+  s.appendChild(txt(opt.legend,padL,gb+24,{c:"#5C5347",s:12}));
+  document.getElementById(id).appendChild(s);
+}
+const cols=["GSM8K","MBPP","LogiQA"];
+heatmap("heatAcc",[
+  ["S_math",[6.4,-1.0,0.5]],["S_code",[-0.7,5.6,-0.4]],["S_logic",[0.4,-0.8,5.1]],
+  ["S_general",[4.7,3.8,3.9]],["S_combo",[4.3,3.4,3.5]],["S_anti (−S)",[-5.2,-4.6,-4.4]],["random",[0.2,-0.2,0.1]]
+],cols,{invert:false,scale:6,dead:0.6,dp:1,unit:"",legend:"Δ accuracy (pts, illustrative):  red = worse  ·  green = better"});
+heatmap("heatTok",[
+  ["S_math",[-22,3,1]],["S_code",[2,-19,2]],["S_logic",[1,3,-18]],
+  ["S_general",[-15,-14,-13]],["S_combo",[-13,-12,-11]],["S_anti (−S)",[18,16,15]],["random",[1,-1,0]]
+],cols,{invert:true,scale:22,dead:1.5,dp:0,unit:"%",legend:"Δ tokens (%, illustrative):  green = fewer tokens (more efficient)  ·  red = more"});
+
+// ---- recovery grouped bars (accuracy + tokens) ----
+(function(){
+  const data=[["Math",79,73],["Code",67,71],["Logic",83,76]]; // acc%, tok%
+  const W=440,H=300,padL=46,padB=58,padT=26,bw=30,inner=10,gap=58,base=H-padB,top=padT,maxY=100;
+  const s=svg(W,H);
+  [0,25,50,75,100].forEach(g=>{const y=base-(g/maxY)*(base-top);
+    s.appendChild(el("line",{x1:padL,y1:y,x2:W-20,y2:y,stroke:"#DCD2BF","stroke-dasharray":"2 5"}));
+    s.appendChild(txt(g+"%",padL-10,y+4,{a:"end",s:11}));});
+  data.forEach((d,i)=>{
+    const gx=padL+28+i*(bw*2+inner+gap);
+    [[d[1],"#2546D4","#E7EAFB","acc"],[d[2],"#2C7A4E","#E7F0EA","tok"]].forEach((b,k)=>{
+      const x=gx+k*(bw+inner), h=(b[0]/maxY)*(base-top), y=base-h;
+      s.appendChild(el("rect",{x,y,width:bw,height:h,rx:5,fill:b[2],stroke:b[1],"stroke-width":2}));
+      s.appendChild(txt(b[0]+"%",x+bw/2,y-8,{a:"middle",c:b[1],s:11.5,w:500}));
+    });
+    s.appendChild(txt(d[0],gx+bw+inner/2,base+22,{a:"middle",c:"#1B1714",s:13}));
+  });
+  // legend
+  s.appendChild(el("rect",{x:padL,y:H-16,width:11,height:11,rx:2,fill:"#E7EAFB",stroke:"#2546D4","stroke-width":2}));
+  s.appendChild(txt("accuracy",padL+16,H-6,{s:11,c:"#2546D4"}));
+  s.appendChild(el("rect",{x:padL+96,y:H-16,width:11,height:11,rx:2,fill:"#E7F0EA",stroke:"#2C7A4E","stroke-width":2}));
+  s.appendChild(txt("tokens saved",padL+112,H-6,{s:11,c:"#2C7A4E"}));
+  document.getElementById("bars").appendChild(s);
+})();
+
+// ---- scatter (trade-off) ----
+(function(){
+  const W=440,H=300,padL=54,padB=50,padT=22,padR=18;
+  const x0=padL,x1=W-padR,y0=H-padB,y1=padT;
+  const s=svg(W,H);
+  const cy=(y0+y1)/2;
+  s.appendChild(el("line",{x1:x0,y1:cy,x2:x1,y2:cy,stroke:"#DCD2BF"}));
+  s.appendChild(el("line",{x1:x0,y1:y1,x2:x0,y2:y0,stroke:"#DCD2BF"}));
+  s.appendChild(txt("home-domain gain →",x1,y0+30,{a:"end",s:11}));
+  s.appendChild(txt("cross-domain effect",x0-44,y1+6,{s:11}));
+  s.appendChild(txt("+",x0-12,y1+14,{s:13,c:"#2C7A4E"}));
+  s.appendChild(txt("−",x0-12,y0-4,{s:13,c:"#D9461C"}));
+  function px(g){return x0+(g/7)*(x1-x0-10)+8;}
+  function py(c){return cy-(c/4)*((cy-y1));}
+  const path=el("path",{d:`M ${px(2)} ${py(2.6)} Q ${px(4.2)} ${py(1.8)} ${px(6.6)} ${py(-2.0)}`,fill:"none",stroke:"#8195EC","stroke-dasharray":"4 4","stroke-width":1.4});
+  s.appendChild(path);
+  s.appendChild(txt("frontier",px(3.0),py(2.4)-6,{s:10,c:"#8195EC"}));
+  const pts=[
+    ["S_math",6.4,-1.8,"#2546D4",0,21,"middle"],
+    ["S_code",5.6,-1.4,"#2546D4",0,-12,"middle"],
+    ["S_logic",5.0,-1.6,"#2546D4",-12,4,"end"],
+    ["S_general",4.1,2.0,"#D9461C",13,4,"start"],
+    ["S_combo",3.6,1.5,"#1B1714",-13,4,"end"]
+  ];
+  pts.forEach(p=>{
+    s.appendChild(el("circle",{cx:px(p[1]),cy:py(p[2]),r:7,fill:p[3]}));
+    s.appendChild(txt(p[0],px(p[1])+p[4],py(p[2])+p[5],{s:11.5,c:p[3],a:p[6]}));
+  });
+  document.getElementById("scatter").appendChild(s);
+})();
+
+// ---- reveal on scroll ----
+const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target);}})},{threshold:.12});
+document.querySelectorAll(".reveal:not(.in)").forEach(n=>io.observe(n));
+</script>
+</body>
+</html>
