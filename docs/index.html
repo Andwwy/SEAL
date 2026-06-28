@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SEAL · Steering Research Docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;1,9..144,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F1E7; --panel:#FBF8F1; --panel-2:#EFE7D8;
+    --ink:#1B1714; --ink-soft:#5C5347; --line:#DCD2BF;
+    --blue:#2546D4; --blue-soft:#8195EC; --blue-wash:#E7EAFB;
+    --coral:#D9461C; --coral-soft:#EF9272; --coral-wash:#FAE6DC;
+    --green:#2C7A4E; --green-soft:#7FBE99; --green-wash:#E7F0EA;
+    --grid:rgba(27,23,20,.045);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--paper); color:var(--ink);
+    font-family:"IBM Plex Sans",sans-serif; font-size:17px; line-height:1.62;
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+    background-size:28px 28px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1060px; margin:0 auto; padding:0 28px}
+  .mono{font-family:"IBM Plex Mono",monospace}
+  .kicker{font-family:"IBM Plex Mono",monospace; font-size:12.5px; letter-spacing:.22em; text-transform:uppercase; color:var(--blue)}
+  h1,h2,h3{font-family:"Fraunces",serif; font-weight:600; line-height:1.05; letter-spacing:-.01em}
+  p{max-width:64ch}
+  a{color:var(--blue)}
+
+  header{padding:88px 0 40px; position:relative; overflow:hidden}
+  header .kicker{margin-bottom:22px}
+  h1{font-size:clamp(38px,6.4vw,72px); font-weight:700; max-width:17ch}
+  .lede{margin-top:26px; font-size:clamp(18px,2.2vw,21px); color:var(--ink-soft); max-width:60ch}
+  .tagrow{margin-top:30px; display:flex; flex-wrap:wrap; gap:10px}
+  .tag{font-family:"IBM Plex Mono",monospace; font-size:12px; padding:7px 13px; border:1px solid var(--line); border-radius:100px; background:var(--panel); letter-spacing:.04em}
+  .tag b{color:var(--ink)}
+
+  section{padding:48px 0 80px; border-top:1px solid var(--line)}
+  .sechead{display:flex; align-items:baseline; gap:18px; margin-bottom:30px}
+  .secnum{font-family:"IBM Plex Mono",monospace; font-size:14px; color:var(--blue); padding-top:6px}
+  h2{font-size:clamp(26px,4vw,38px)}
+
+  .cards{display:grid; grid-template-columns:1fr 1fr; gap:20px}
+  @media(max-width:740px){.cards{grid-template-columns:1fr}}
+  .card{display:block; text-decoration:none; color:inherit; background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:26px; position:relative; transition:transform .25s ease, box-shadow .25s ease; box-shadow:0 1px 0 rgba(27,23,20,.03),0 18px 40px -34px rgba(27,23,20,.45)}
+  .card:hover{transform:translateY(-3px); box-shadow:0 22px 44px -30px rgba(27,23,20,.55)}
+  .card .role{font-family:"IBM Plex Mono",monospace; font-size:11px; letter-spacing:.14em; text-transform:uppercase; padding:4px 9px; border-radius:100px; display:inline-block; margin-bottom:16px; background:var(--blue-wash); color:var(--blue)}
+  .card h3{font-size:22px; line-height:1.15; margin-bottom:10px}
+  .card p{font-size:15px; color:var(--ink-soft)}
+  .card .go{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--blue); margin-top:16px; display:inline-flex; align-items:center; gap:6px}
+  .card .go .arrow{transition:transform .25s ease}
+  .card:hover .go .arrow{transform:translateX(4px)}
+
+  footer{border-top:1px solid var(--line); padding:34px 0 60px; font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--ink-soft)}
+  footer a{color:var(--blue)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">SEAL · Steering Research</div>
+    <h1>Reasoning-Calibration Steering</h1>
+    <p class="lede">Research plans, write-ups, and figures for general vs. task-specific reasoning-calibration steering vectors, built on the SEAL recipe.</p>
+    <div class="tagrow">
+      <span class="tag"><b>steering vectors</b></span>
+      <span class="tag"><b>SEAL</b></span>
+      <span class="tag"><b>reasoning calibration</b></span>
+    </div>
+  </header>
+
+  <section>
+    <div class="sechead">
+      <span class="secnum">01</span>
+      <h2>Documents</h2>
+    </div>
+    <div class="cards">
+      <a class="card" href="steering_seal_research_plan.html">
+        <span class="role">Research Plan</span>
+        <h3>General vs. Task-Specific Reasoning-Calibration Vectors</h3>
+        <p>The full research plan following the SEAL recipe — motivation, method, experiments, and references.</p>
+        <span class="go">Open document <span class="arrow">&rarr;</span></span>
+      </a>
+    </div>
+  </section>
+
+  <footer class="wrap">
+    Source: <a href="https://github.com/Andwwy/SEAL">github.com/Andwwy/SEAL</a> · docs/
+  </footer>
+</div>
+</body>
+</html>
